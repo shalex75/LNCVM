@@ -1,23 +1,19 @@
 # LNCVM
 
-Targed:
-To contol list of Loconet CVs on Arduino. With minimum using of RAM memory.
+List with list of Loconet CVs on Arduino. With minimum using of RAM memory.
 
 Features:
-- placing default CV values and init list in programm memory (don't use RAM):
-    * store CV addres;
-    * store default value;
-    * store text;
+- default CV values and master list saves in programm memory (don't use RAM):
+- CV master-record:
+    * CV addres;
+    * default value;
+    * text;
 - support EEPROM to store CV values;
-- support two groups of CV:
-    * system;
-    * user;
-- support special system CVS:
+- support two kind of CV-groups:
+    * systems CV;
+    * users CV;
+- support special system CVs:
    * reset CVs values to default;
    * reset Arduino; 
-- fast searching by Loconet CV addres;
-- simple using in your owm code;
 
-
-How to use:
-You can  found an example in Examples folder. 
+How to use: you can found an example in Examples folder. 
