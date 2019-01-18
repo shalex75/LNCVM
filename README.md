@@ -5,7 +5,7 @@ List of Loconet CVs on Arduino platform. With minimum using of RAM memory.
 Features:
 - default CV values and master list saves in programm memory (don't use RAM):
 - CV master-record:
-    * CV addres;
+    * CV address;
     * default value;
     * text;
 - support EEPROM to store CV values;
