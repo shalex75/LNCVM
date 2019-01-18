@@ -28,13 +28,13 @@
 #define LNCV_SYS_COUNT 7
 
 const CVDesc CV_SYS_INIT[LNCV_SYS_COUNT] PROGMEM ={
-  {LNCV_IDX_LN_ADDR,          DEF_LNCV_ADDRESS,       "Default address of Loconet module"},
-  {LNCV_IDX_RESET_TO_DEF,     DEF_LNCV_RESET_TO_DEF,  "Reset CVs to default (write any value)"},
-  {LNCV_IDX_RESET_DEVICE,     DEF_LNCV_RESET_DEVICE,  "Reset device (write any value)"},
-  {LNCV_IDX_PARTY_ID,         DEF_PARTY_ID,           "Party ID"},                           
-  {LNCV_IDX_MODULE_ID,        DEF_MODULE_ID,          "Module ID (one party can have many nodules)"},
-  {LNCV_IDX_FIRMWARE_TYPE_ID, DEF_FIRMWARE_TYPE_ID,   "Firmware type ID (type of decoder)"},
-  {LNCV_IDX_FIRMWARE_VER,     DEF_FIRMWARE_VER,       "Firmware version"}
+  {LNCV_IDX_LN_ADDR,          DEF_LNCV_ADDRESS,       0, "Default address of Loconet module"},
+  {LNCV_IDX_RESET_TO_DEF,     DEF_LNCV_RESET_TO_DEF,  1, "Reset CVs to default (write any value)"},
+  {LNCV_IDX_RESET_DEVICE,     DEF_LNCV_RESET_DEVICE,  1, "Reset device (write any value)"},
+  {LNCV_IDX_PARTY_ID,         DEF_PARTY_ID,           0, "Party ID"},                           
+  {LNCV_IDX_MODULE_ID,        DEF_MODULE_ID,          0, "Module ID (one party can have many nodules)"},
+  {LNCV_IDX_FIRMWARE_TYPE_ID, DEF_FIRMWARE_TYPE_ID,   1, "Firmware type ID (type of decoder)"},
+  {LNCV_IDX_FIRMWARE_VER,     DEF_FIRMWARE_VER,       1, "Firmware version"}
 //  {LNCV_IDX_LN_ART,           DEF_LN_ART,             "LN Art"}
 
 };

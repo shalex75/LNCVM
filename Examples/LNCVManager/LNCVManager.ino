@@ -29,6 +29,8 @@ void printCVList(){
     Serial.print(cvm.get_val_by_idx(cvm.get_sorted_idx(i)));
     Serial.print(";d:");
     Serial.print(cvm.get_def_val_by_idx(cvm.get_sorted_idx(i)));
+    Serial.print(";ro:");
+    Serial.print(cvm.get_ro_by_idx(cvm.get_sorted_idx(i)));
     Serial.print(";");
     cvm.get_string_by_idx(cvm.get_sorted_idx(i), buf);
     Serial.println(buf);

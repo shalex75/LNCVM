@@ -15,7 +15,7 @@ private:
   uint16_t *lncv_val;
   uint16_t *lncv_num;
   uint16_t *lncv_idx;
-
+	
   CVDesc * ln_sys;
   CVDesc * ln_user;
   
@@ -55,6 +55,9 @@ public:
   
   uint16_t  get_val_by_num(uint16_t lncv_num);
   uint16_t  get_val_by_idx(uint16_t idx);
+
+  uint8_t   get_ro_by_idx(uint16_t idx);
+
   uint16_t  get_def_val_by_idx(uint16_t idx);
   
   uint16_t  get_string_by_idx(uint16_t idx, char res[]);
@@ -74,6 +77,15 @@ public:
 #endif     
   };
 };
+
+  uint8_t   LNCVManager::get_ro_by_idx(uint16_t idx){
+    uint8_t  val;
+    if (idx <  count_sys_cv) 
+      val = pgm_read_byte_near(&ln_sys[idx].read_only);
+    else
+      val = pgm_read_byte_near(&ln_user[idx - count_sys_cv].read_only);
+    return val;
+  };
 
   uint16_t LNCVManager::get_sorted_idx(uint16_t pos){
     return lncv_idx[pos];
@@ -148,13 +160,14 @@ public:
     lncv_val = new uint16_t[count];
     lncv_num = new uint16_t[count];
     lncv_idx = new uint16_t[count];
-    uint16_t d;
-    for(int i = 0; i < count_sys_cv; i++){
-        d = pgm_read_word_near(&ln_sys[i].lncv_num);
-        lncv_num[i] = d;
-    }        
-    for(int i = 0; i < count_user_cv; i++)
+
+    for(int i = 0; i < count_sys_cv; i++)
+        lncv_num[i] = pgm_read_word_near(&ln_sys[i].lncv_num);
+
+    for(int i = 0; i < count_user_cv; i++) 
         lncv_num[i + count_sys_cv] = pgm_read_word_near(&ln_user[i].lncv_num);
+
+//    uint8_t  *lncv_ro;
 
     for(int i = 0; i < count; i++) lncv_idx[i] = i;
     
@@ -170,18 +183,18 @@ public:
         }
   };
 
+
   
     
   int32_t  LNCVManager::set_val_by_idx(uint16_t idx, uint16_t val){
     if ((idx >= count)) return -1;
-    
+
 #ifdef DEBUG_CVM
     Serial.print("set_val_by_idx: ");
     Serial.print("idx: ");
     Serial.println(idx);
 #endif    
-    lncv_val[idx] = val;
-    uint16_t addr = sizeof(KeyType) + idx * sizeof(lncv_val[0]);
+
     switch (lncv_num[idx]){
       case LNCV_IDX_RESET_TO_DEF:
         reset_default();
@@ -193,6 +206,11 @@ public:
       default:
         break;      
     }
+    if (get_ro_by_idx(idx)) return -2;
+
+
+    lncv_val[idx] = val;
+    uint16_t addr = sizeof(KeyType) + idx * sizeof(lncv_val[0]);
     eeprom_write_block((void*)&lncv_val[idx], (void*)(addr), sizeof(lncv_val[0]) );
     return lncv_val[idx];
   };
