@@ -312,21 +312,15 @@ public:
       else buf = & ln_user[idx - count_sys_cv].txt[0] ;
     
     
-    for (int i = 0; i < LNCV_TXT_MAX_LENGTH; i++){
-        //res[i] = pgm_read_byte_near(CVInit + idx * sizeof(CVDesc) + sizeof(CVDesc.lncv_num) + sizeof(CVDesc.def_value));
+    for (int i = 0; i < LNCV_TXT_MAX_LENGTH; i++)
         res[i]= pgm_read_byte_near(buf + i);
-        //r[i] = pgm_read_byte_near(buf + i);
-    }
-    //Serial.println(r);
     return 1;
     
   }
   uint16_t LNCVManager::get_string_by_num(uint16_t lncv_num, char res[]){
     int32_t idx = get_idx_by_num(lncv_num);
-    if (idx >= 0) {
-      return get_string_by_idx(idx, res);
-    }
-    else 
+    if (idx >= 0) return get_string_by_idx(idx, res);
+      else 
     return 0;
   };
   
