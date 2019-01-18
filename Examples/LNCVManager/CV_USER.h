@@ -1,7 +1,7 @@
 #ifndef LN_CV_USER
 #define LN_CV_USER
 
-#define LNCV_COUNT 17
+#define LNCV_COUNT 7
 
 const  CVDesc CV_USER_INIT[LNCV_COUNT] PROGMEM ={
     {10,     1,  "User 1"},
