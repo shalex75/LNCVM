@@ -11,8 +11,11 @@
 	extern "C" {
 #endif
 
-extern uint16_t notifyCVRead( uint16_t CVAddress) __attribute__ ((weak));
-extern int32_t notifyCVWrite(uint16_t CVAddress, uint16_t val) __attribute__ ((weak));
+extern int32_t notifyCVReadExternal( uint16_t CVAddress) __attribute__ ((weak));
+extern int32_t notifyCVWriteExternal(uint16_t CVAddress, uint16_t val) __attribute__ ((weak));
+
+extern void notifyAfterCVRead( uint16_t CVAddress, uint16_t val) __attribute__ ((weak));
+extern void notifyAfterCVWrite(uint16_t CVAddress, uint16_t val) __attribute__ ((weak));
 
 #if defined (__cplusplus)
 }
@@ -73,8 +76,10 @@ public:
   int32_t  get_num_by_idx(uint16_t idx); 
 
   
-  uint16_t  get_val_by_num(uint16_t lncv_num);
-  uint16_t  get_val_by_idx(uint16_t idx);
+  uint32_t  get_val_by_num(uint16_t lncv_num);
+  uint32_t  get_val_by_idx(uint16_t idx);
+
+  uint16_t  cv(uint16_t lncv_num) { return get_val_by_num(lncv_num);};
 
   CV_TYPE   get_cv_type_by_idx(uint16_t idx);
 
@@ -231,29 +236,33 @@ public:
         break;      
     }
     uint16_t addr;
+	int32_t  res;
+	
     CV_TYPE cv_type = get_cv_type_by_idx(idx);
     switch (cv_type) {
 	case CV_RW:
 		lncv_val[idx] = val;
     		addr = sizeof(KeyType) + idx * sizeof(lncv_val[0]);
     		eeprom_write_block((void*)&lncv_val[idx], (void*)(addr), sizeof(lncv_val[0]) );
-    		return lncv_val[idx];
+    		res = lncv_val[idx];
 		break;
 	case CV_RO:
-		return -2;
+		res = -2;
 		break;
 	case CV_RO_EXT:
-		return -3;
+		res = -3;
 		break;
 	case CV_RW_EXT:
-		if (notifyCVWrite)
-			return notifyCVWrite(lncv_num[idx], val);
+		if (notifyCVWriteExternal) res = notifyCVWriteExternal(lncv_num[idx], val);
 		break;
 	default:
 		break;
     };
-
-    return -4;
+	if (res >= 0) {
+		if (notifyAfterCVWrite) notifyAfterCVWrite(lncv_num[idx], val);
+	}	
+		else return res;
+		
   };
   
   int32_t  LNCVManager::set_val_by_num(uint16_t num, uint16_t val){
@@ -349,15 +358,17 @@ public:
   };
 
   
-  uint16_t  LNCVManager::get_val_by_num(uint16_t lncv_num){
+  uint32_t  LNCVManager::get_val_by_num(uint16_t lncv_num){
     int32_t idx = get_idx_by_num(lncv_num);
     if (idx >= 0) 
-	return get_val_by_idx(idx);
+		return get_val_by_idx(idx);
     else  
-      return 0;
+		return idx;
   };
   
-  uint16_t  LNCVManager::get_val_by_idx(uint16_t idx){
+  uint32_t  LNCVManager::get_val_by_idx(uint16_t idx){
+  uint32_t	res;
+  
     if (idx < count) {
 	    CV_TYPE cv_type = get_cv_type_by_idx(idx);
 	    switch (cv_type) {
@@ -365,27 +376,33 @@ public:
 		case CV_RO:
 			switch (lncv_num[idx]) {
 				case LNCV_IDX_FIRMWARE_TYPE_ID:
-					return ln_firmware_id;
+					res =  ln_firmware_id;
 					break;
 				case LNCV_IDX_FIRMWARE_VER:
-					return ln_version_id;
+					res = ln_version_id;
 					break;
 				default:
-			    		return lncv_val[idx];
+					res = lncv_val[idx];
 					break;
 			};
 			break;
 		case CV_RO_EXT:
 		case CV_RW_EXT:
-			if (notifyCVRead)
-				return notifyCVRead(lncv_num[idx]);
+			if (notifyCVReadExternal)
+				res = notifyCVReadExternal(lncv_num[idx]);
 			break;
 		default:
+			res = -2;
 			break;
-    	    };
+    	};
+		
+		if (notifyAfterCVRead) 
+				notifyAfterCVRead(lncv_num[idx], res);
+
     }
 //return lncv_val[idx];
-      else return 0;
+      else res = -1;
+	return res;
   }
 
   uint16_t LNCVManager::get_string_by_idx(uint16_t idx, char res[]){

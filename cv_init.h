@@ -1,7 +1,7 @@
 #ifndef LN_CV_INIT
 #define LN_CV_INIT
 
-#define  LNCV_TXT_MAX_LENGTH 50
+#define  LNCV_TXT_MAX_LENGTH 100
 
 typedef enum {  
 	CV_RW = 0, 
