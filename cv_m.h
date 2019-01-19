@@ -370,6 +370,7 @@ public:
 					break;
 				default:
 			    		return lncv_val[idx];
+					break;
 			};
 			break;
 		case CV_RO_EXT:
