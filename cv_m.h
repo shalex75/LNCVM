@@ -5,12 +5,29 @@
 #undef DEBUG_CVM
 
 #define KeyType long 
+
+
+#if defined (__cplusplus)
+	extern "C" {
+#endif
+
+extern uint16_t notifyCVRead( uint16_t CVAddress) __attribute__ ((weak));
+extern int32_t notifyCVWrite(uint16_t CVAddress, uint16_t val) __attribute__ ((weak));
+
+#if defined (__cplusplus)
+}
+
+#endif
+
+
 class LNCVManager{
 private:
   uint16_t idx_reset_to_def;
   uint16_t idx_reset_device;
   
   uint16_t ln_art;
+  uint16_t ln_firmware_id;
+  uint16_t ln_version_id;
   
   uint16_t *lncv_val;
   uint16_t *lncv_num;
@@ -42,7 +59,8 @@ public:
   
   ~LNCVManager();
   
-  LNCVManager(uint16_t ln_art_in, uint16_t count_sys_cv_in, uint16_t count_user_cv_in, const CVDesc ln_sys_in[], const CVDesc ln_user_in[]);
+  LNCVManager(uint16_t ln_art_in, uint16_t ln_firmware_id_in, uint16_t ln_version_id_in,
+	      uint16_t count_sys_cv_in, uint16_t count_user_cv_in, const CVDesc ln_sys_in[], const CVDesc ln_user_in[]);
 
   uint16_t get_count() { return count; };
   int32_t  set_val_by_idx(uint16_t idx, uint16_t val);
@@ -56,7 +74,7 @@ public:
   uint16_t  get_val_by_num(uint16_t lncv_num);
   uint16_t  get_val_by_idx(uint16_t idx);
 
-  uint8_t   get_ro_by_idx(uint16_t idx);
+  CV_TYPE   get_cv_type_by_idx(uint16_t idx);
 
   uint16_t  get_def_val_by_idx(uint16_t idx);
   
@@ -78,20 +96,20 @@ public:
   };
 };
 
-  uint8_t   LNCVManager::get_ro_by_idx(uint16_t idx){
+  CV_TYPE   LNCVManager::get_cv_type_by_idx(uint16_t idx){
     uint8_t  val;
     if (idx <  count_sys_cv) 
-      val = pgm_read_byte_near(&ln_sys[idx].read_only);
+      val = pgm_read_byte_near(&ln_sys[idx].cv_type);
     else
-      val = pgm_read_byte_near(&ln_user[idx - count_sys_cv].read_only);
-    return val;
+      val = pgm_read_byte_near(&ln_user[idx - count_sys_cv].cv_type);
+    return (CV_TYPE)val;
   };
 
   uint16_t LNCVManager::get_sorted_idx(uint16_t pos){
     return lncv_idx[pos];
   }
   KeyType LNCVManager::calc_key(){
-    KeyType  key = ln_art + DEF_FIRMWARE_TYPE_ID * 10000 + DEF_FIRMWARE_VER * 1000000;
+    KeyType  key = ln_art + ln_firmware_id * 10000 + ln_version_id * 1000000;
     return key;
   };
   
@@ -144,12 +162,16 @@ public:
     delete[] lncv_val;
   };
   
-  LNCVManager::LNCVManager(uint16_t ln_art_in, uint16_t count_sys_cv_in, uint16_t count_user_cv_in, const CVDesc ln_sys_in[], const CVDesc ln_user_in[]){
+  LNCVManager::LNCVManager(uint16_t ln_art_in, uint16_t ln_firmware_id_in, uint16_t ln_version_id_in, 
+			   uint16_t count_sys_cv_in, uint16_t count_user_cv_in, 
+			   const CVDesc ln_sys_in[], const CVDesc ln_user_in[]){
     ln_art = ln_art_in;
-    
+    ln_firmware_id = ln_firmware_id_in;
+    ln_version_id = ln_version_id_in;
+
     idx_reset_to_def = 0;
     idx_reset_device = 0;
-    
+ 
     ln_sys = (CVDesc *)ln_sys_in;
     ln_user = (CVDesc *)ln_user_in;
   
@@ -206,13 +228,30 @@ public:
       default:
         break;      
     }
-    if (get_ro_by_idx(idx)) return -2;
+    uint16_t addr;
+    CV_TYPE cv_type = get_cv_type_by_idx(idx);
+    switch (cv_type) {
+	case CV_RW:
+		lncv_val[idx] = val;
+    		addr = sizeof(KeyType) + idx * sizeof(lncv_val[0]);
+    		eeprom_write_block((void*)&lncv_val[idx], (void*)(addr), sizeof(lncv_val[0]) );
+    		return lncv_val[idx];
+		break;
+	case CV_RO:
+		return -2;
+		break;
+	case CV_RO_EXT:
+		return -3;
+		break;
+	case CV_RW_EXT:
+		if (notifyCVWrite)
+			return notifyCVWrite(lncv_num[idx], val);
+		break;
+	default:
+		break;
+    };
 
-
-    lncv_val[idx] = val;
-    uint16_t addr = sizeof(KeyType) + idx * sizeof(lncv_val[0]);
-    eeprom_write_block((void*)&lncv_val[idx], (void*)(addr), sizeof(lncv_val[0]) );
-    return lncv_val[idx];
+    return -4;
   };
   
   int32_t  LNCVManager::set_val_by_num(uint16_t num, uint16_t val){
@@ -282,7 +321,7 @@ public:
           return lncv_idx[c];
         }
         
-        //if ( (b - a) < 2) return -1;
+        if ( (b - a) <= 2) return -1;
         
         if (lncv_num[lncv_idx[c]] <= lncv_num_in) a = c; 
           else b = c;
@@ -311,13 +350,38 @@ public:
   uint16_t  LNCVManager::get_val_by_num(uint16_t lncv_num){
     int32_t idx = get_idx_by_num(lncv_num);
     if (idx >= 0) 
-        return lncv_val[idx];
+	return get_val_by_idx(idx);
     else  
       return 0;
   };
   
   uint16_t  LNCVManager::get_val_by_idx(uint16_t idx){
-    if (idx < count) return lncv_val[idx];
+    if (idx < count) {
+	    CV_TYPE cv_type = get_cv_type_by_idx(idx);
+	    switch (cv_type) {
+		case CV_RW:
+		case CV_RO:
+			switch (lncv_num[idx]) {
+				case LNCV_IDX_FIRMWARE_TYPE_ID:
+					return ln_firmware_id;
+					break;
+				case LNCV_IDX_FIRMWARE_VER:
+					return ln_version_id;
+					break;
+				default:
+			    		return lncv_val[idx];
+			};
+			break;
+		case CV_RO_EXT:
+		case CV_RW_EXT:
+			if (notifyCVRead)
+				return notifyCVRead(lncv_num[idx]);
+			break;
+		default:
+			break;
+    	    };
+    }
+//return lncv_val[idx];
       else return 0;
   }
 
@@ -342,5 +406,6 @@ public:
     return 0;
   };
   
+
 
 #endif
