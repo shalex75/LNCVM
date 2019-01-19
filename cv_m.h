@@ -89,6 +89,8 @@ public:
   uint16_t  get_string_by_num(uint16_t lncv_num, char res[]);
   uint16_t  get_sorted_idx(uint16_t pos);
   
+  void 		print_cv_list();
+
   void      print_lncv_num() {
 #ifdef DEBUG_CVM
      Serial.print("lncv_num c:");
@@ -101,6 +103,45 @@ public:
      }
 #endif     
   };
+};
+
+void LNCVManager::print_cv_list(){
+  char buf[LNCV_TXT_MAX_LENGTH];
+  
+  Serial.print("CV c: ");
+  Serial.print(get_count());
+  Serial.print(" sz: ");
+  Serial.println(get_EEPROM_size());
+  for (int i =0; i < get_count(); i++){
+    Serial.print("CV:");
+    Serial.print(get_num_by_idx(get_sorted_idx(i)));
+    Serial.print(";v:");
+    Serial.print(get_val_by_idx(get_sorted_idx(i)));
+    Serial.print(";d:");
+    Serial.print(get_def_val_by_idx(get_sorted_idx(i)));
+    Serial.print(";t:");
+    switch (get_cv_type_by_idx(get_sorted_idx(i))){
+      case CV_RW:
+        Serial.print("rw");
+        break;
+      case CV_RO:
+        Serial.print("ro");
+        break;
+      case CV_RW_EXT:
+        Serial.print("rw_ext");
+        break;
+      case CV_RO_EXT:
+        Serial.print("ro_ext");
+        break;
+      default:
+        Serial.print("unk");
+        break;
+    }
+    Serial.print(";");
+    get_string_by_idx(get_sorted_idx(i), buf);
+    Serial.println(buf);
+    
+  }
 };
 
   CV_TYPE   LNCVManager::get_cv_type_by_idx(uint16_t idx){

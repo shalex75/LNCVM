@@ -36,26 +36,6 @@ int32_t notifyCVWrite(uint16_t LNCVAddr, uint16_t val){
   Serial.print(" v:");
   Serial.print(val);
 }
-void printCVList(){
-  char buf[LNCV_TXT_MAX_LENGTH];
-  
-  Serial.print("count: ");
-  Serial.println(cvm.get_count());
-  for (int i =0; i < cvm.get_count(); i++){
-    Serial.print("CV:");
-    Serial.print(cvm.get_num_by_idx(cvm.get_sorted_idx(i)));
-    Serial.print(";v:");
-    Serial.print(cvm.get_val_by_idx(cvm.get_sorted_idx(i)));
-    Serial.print(";d:");
-    Serial.print(cvm.get_def_val_by_idx(cvm.get_sorted_idx(i)));
-    Serial.print(";t:");
-    Serial.print(cvm.get_cv_type_by_idx(cvm.get_sorted_idx(i)));
-    Serial.print(";");
-    cvm.get_string_by_idx(cvm.get_sorted_idx(i), buf);
-    Serial.println(buf);
-    
-  }
-}
 
 
 void PrintFreeMem(){
@@ -67,7 +47,7 @@ void setup() {
   randomSeed(analogRead(0));
   Serial.begin(115000);
   cvm.eeprom_init();
-  printCVList();
+  cvm.print_cv_list();
   PrintFreeMem();
 }
 
@@ -79,7 +59,7 @@ void loop() {
         PrintFreeMem();
         break;
       case 'l':
-        printCVList();
+        cvm.print_cv_list();
         break;
       case 'd':
         cvm.set_val_by_num(LNCV_IDX_RESET_TO_DEF, 0);
