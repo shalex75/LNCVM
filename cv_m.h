@@ -63,6 +63,8 @@ public:
 	      uint16_t count_sys_cv_in, uint16_t count_user_cv_in, const CVDesc ln_sys_in[], const CVDesc ln_user_in[]);
 
   uint16_t get_count() { return count; };
+  uint16_t get_EEPROM_size() { return sizeof(KeyType) + count * sizeof(uint16_t); };
+
   int32_t  set_val_by_idx(uint16_t idx, uint16_t val);
   int32_t  set_val_by_num(uint16_t num, uint16_t val);
     
