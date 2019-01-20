@@ -308,20 +308,34 @@ void LNCVManager::print_cv_list(){
   
     
   int32_t  LNCVManager::set_val_by_idx(uint16_t idx, uint16_t val){
-    if ((idx >= count)) return -1;
-
 #ifdef DEBUG_CVM
     Serial.print("set_val_by_idx: ");
     Serial.print("idx: ");
-    Serial.println(idx);
+    Serial.print(idx);
+    Serial.print(" v: ");
+    Serial.println(val);
 #endif    
 
+    if ((idx >= count)) return -1;
+
+#ifdef DEBUG_CVM
+    Serial.print("set_val_by_idx: idx:");
+    Serial.print(idx);
+    Serial.print(" v: ");
+    Serial.println(val);
+#endif
     switch (lncv_num[idx]){
       case LNCV_IDX_RESET_TO_DEF:
-        reset_default();
+#ifdef DEBUG_CVM
+		Serial.println("reset to def!");
+#endif      
+		reset_default();
         soft_reset();
         break;
       case LNCV_IDX_RESET_DEVICE:
+#ifdef DEBUG_CVM
+		Serial.println("reset device!");
+#endif      
         soft_reset();
         break;
       default:
@@ -331,42 +345,65 @@ void LNCVManager::print_cv_list(){
 	int32_t  res;
 	
     CV_TYPE cv_type = get_cv_type_by_idx(idx);
+#ifdef DEBUG_CVM
+    Serial.print(" cv_type: ");
+    Serial.print(cv_type);
+#endif
     switch (cv_type) {
 	case CV_RW:
+#ifdef DEBUG_CVM
+		Serial.print(" RW ");
+#endif
+	
 		lncv_val[idx] = val;
-    		addr = sizeof(KeyType) + idx * sizeof(lncv_val[0]);
-    		eeprom_write_block((void*)&lncv_val[idx], (void*)(addr), sizeof(lncv_val[0]) );
-    		res = lncv_val[idx];
+    	addr = sizeof(KeyType) + idx * sizeof(lncv_val[0]);
+    	eeprom_write_block((void*)&lncv_val[idx], (void*)(addr), sizeof(lncv_val[0]) );
+    	res = lncv_val[idx];
 		break;
 	case CV_RO:
+#ifdef DEBUG_CVM
+		Serial.print(" RO ");
+#endif		
 		res = -2;
 		break;
 	case CV_RO_EXT:
+#ifdef DEBUG_CVM
+		Serial.print(" RO_EXT ");
+#endif		
 		res = -3;
 		break;
 	case CV_RW_EXT:
+#ifdef DEBUG_CVM
+		Serial.print(" RW_EXT ");
+#endif		
 		if (notifyCVWriteExternal) res = notifyCVWriteExternal(lncv_num[idx], val);
 		break;
 	default:
 		break;
     };
-	if (res >= 0) {
+#ifdef DEBUG_CVM
+	Serial.print(" res: ");
+	Serial.println(res);
+#endif
+	if (res >= 0)
 		if (notifyAfterCVWrite) notifyAfterCVWrite(lncv_num[idx], val);
-	}	
-		else return res;
+	return res;
 		
   };
   
   int32_t  LNCVManager::set_val_by_num(uint16_t num, uint16_t val){
 #ifdef DEBUG_CVM
-    Serial.print("set_val_by_num: ");
+    Serial.print("set_val_by_num: n:");
+    Serial.print(num);
+    Serial.print(" v: ");
+    Serial.println(val);
 #endif    
     int32_t idx = get_idx_by_num(num);
 #ifdef DEBUG_CVM
     Serial.print("idx: ");
     Serial.println(idx);
 #endif
-    if (idx == -1) return -1;
+    if (idx < 0) return -1;
     return set_val_by_idx(idx,val);
   };
   
