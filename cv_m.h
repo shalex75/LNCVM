@@ -107,8 +107,13 @@ public:
 
 void LNCVManager::print_cv_list(){
   char buf[LNCV_TXT_MAX_LENGTH];
-  
-  Serial.print("CV c: ");
+  Serial.print("Art: ");
+  Serial.print(ln_art);
+  Serial.print(" fwt: ");
+  Serial.print(ln_firmware_id);
+  Serial.print(" ver: ");
+  Serial.print(ln_version_id);
+  Serial.print(" CVs: ");
   Serial.print(get_count());
   Serial.print(" sz: ");
   Serial.println(get_EEPROM_size());
