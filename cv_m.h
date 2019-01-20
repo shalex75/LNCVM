@@ -78,7 +78,9 @@ public:
   
   uint32_t  get_val_by_num(uint16_t lncv_num);
   uint32_t  get_val_by_idx(uint16_t idx);
-
+  
+  int32_t  set_cv_from_str(String s);
+  
   uint16_t  cv(uint16_t lncv_num) { return get_val_by_num(lncv_num);};
 
   CV_TYPE   get_cv_type_by_idx(uint16_t idx);
@@ -91,7 +93,53 @@ public:
   
   void 		print_cv_list();
 
-  void      print_lncv_num() {
+  void      print_lncv_num();
+};
+
+  int32_t  LNCVManager::set_cv_from_str(String s){
+
+//	String digits = "0123456789";
+	uint16_t cv_num;
+	uint16_t cv_val;
+	
+#ifdef DEBUG_CVM
+     Serial.print("cv str len:");
+     Serial.print(s.length());
+#endif
+
+	if (s.length() < 5) return -6;
+
+#ifdef DEBUG_CVM
+     Serial.print(" s:");
+     Serial.println(s);
+#endif
+
+	
+	if (!(s.substring(0,2)=="cv")) return -7;
+	
+	int16_t vs = s.indexOf("=");
+	if (vs >=3 ){
+			cv_val = s.substring(vs + 1).toInt();
+			cv_num = s.substring(2, vs).toInt();
+#ifdef DEBUG_CVM
+			Serial.print("vs: ");
+			Serial.print(vs);
+			Serial.print(" n:");
+			Serial.print(s.substring(2, vs));
+			Serial.print(" v:");
+			Serial.print(s.substring(vs+1));
+			
+			Serial.print(" cv_val: ");
+			Serial.print(cv_val);
+			Serial.print(" cv_num: ");
+			Serial.println(cv_num);
+#endif
+			return set_val_by_num(cv_num, cv_val);
+	}
+	else
+		return -8;
+  }
+  void      LNCVManager::print_lncv_num() {
 #ifdef DEBUG_CVM
      Serial.print("lncv_num c:");
      Serial.println(count);
@@ -103,8 +151,6 @@ public:
      }
 #endif     
   };
-};
-
 void LNCVManager::print_cv_list(){
   char buf[LNCV_TXT_MAX_LENGTH];
   Serial.print("Art: ");
