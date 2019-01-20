@@ -50,7 +50,28 @@ void setup() {
   cvm.print_cv_list();
   PrintFreeMem();
 }
-
+void ParseCV(){
+byte index = 0;
+String s = "c";
+char inChar = 0;;
+ //Serial.println("Parse!"); // Now do something with the string (but not using ==)
+ while (((byte)inChar != 13) && (index < 100)) // Don't read unless
+  if (Serial.available())                                               // there you know there is data
+  {
+      if(index < 100) // One less than the size of the array
+      {
+          inChar = Serial.read(); // Read a character; 
+          s = s + inChar;
+          index++;
+      }
+  }
+  Serial.print("str: "); // Now do something with the string (but not using ==)
+  Serial.print(s); // Now do something with the string (but not using ==)
+  Serial.print(" ret_code: "); // Now do something with the string (but not using ==)
+  int32_t res = cvm.set_cv_from_str(s);
+  Serial.println(res);
+  
+}
 void loop() {
   // putyour main code here, to run repeatedly:
   if (Serial.available()) {
@@ -70,6 +91,8 @@ void loop() {
       case 'r':
         cvm.set_val_by_num(LNCV_IDX_RESET_DEVICE, 0);
         break;
+      case 'c':
+        ParseCV();
       default:
         break;
     }
