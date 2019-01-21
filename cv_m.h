@@ -81,7 +81,7 @@ public:
   
   int32_t  set_cv_from_str(String s);
   
-  uint16_t  cv(uint16_t lncv_num) { return get_val_by_num(lncv_num);};
+  int32_t  cv(uint16_t lncv_num) { return get_val_by_num(lncv_num);};
 
   CV_TYPE   get_cv_type_by_idx(uint16_t idx);
 
@@ -151,6 +151,7 @@ public:
      }
 #endif     
   };
+  
 void LNCVManager::print_cv_list(){
   char buf[LNCV_TXT_MAX_LENGTH];
   Serial.print("Art: ");
