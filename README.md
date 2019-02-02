@@ -20,6 +20,6 @@ How to use: you can found an example in Examples folder.
 
 Requires: 
 - EEPROMex (https://playground.arduino.cc/Code/EEPROMex);
-- NMRA Loconet library (https://github.com/mrrwa/LocoNet);
+- NRRWA Loconet library (https://github.com/mrrwa/LocoNet);
 
 Warning: class does not check uniqly LN CV address. The user should control it by yourself.
