@@ -165,9 +165,9 @@ void LNCVManager::print_cv_list(){
   Serial.print(" sz: ");
   Serial.println(get_EEPROM_size());
   for (int i =0; i < get_count(); i++){
-    Serial.print("CV:");
+    Serial.print("cv");
     Serial.print(get_num_by_idx(get_sorted_idx(i)));
-    Serial.print(";v:");
+    Serial.print("=");
     Serial.print(get_val_by_idx(get_sorted_idx(i)));
     Serial.print(";d:");
     Serial.print(get_def_val_by_idx(get_sorted_idx(i)));
