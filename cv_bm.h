@@ -8,7 +8,7 @@
 #define DEBUG_CVM
 #undef DEBUG_CVM
 
-#define KeyType long 
+#define KeyType uint16_t 
 
 
 #if defined (__cplusplus)

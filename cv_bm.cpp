@@ -1,6 +1,7 @@
 #include <cv_bm.h>
 
-
+#define DEBUG_CVM
+#undef DEBUG_CVM
   int32_t  LNCVBManager::set_cv_from_str(String s){
 
 //	String digits = "0123456789";
@@ -8,15 +9,17 @@
 	uint16_t cv_val;
 	
 #ifdef DEBUG_CVM
-     Serial.print("cv str len:");
-     Serial.print(s.length());
+//     Serial.print("cv str len:");
+//     Serial.print(s.length());
 #endif
 
 	if (s.length() < 5) return -6;
 
 #ifdef DEBUG_CVM
+/*
      Serial.print(" s:");
      Serial.println(s);
+*/	 
 #endif
 
 	
@@ -27,6 +30,7 @@
 			cv_val = s.substring(vs + 1).toInt();
 			cv_num = s.substring(2, vs).toInt();
 #ifdef DEBUG_CVM
+/*
 			Serial.print("vs: ");
 			Serial.print(vs);
 			Serial.print(" n:");
@@ -38,6 +42,7 @@
 			Serial.print(cv_val);
 			Serial.print(" cv_num: ");
 			Serial.println(cv_num);
+*/			
 #endif
 			return set_val_by_num(cv_num, cv_val);
 	}
@@ -140,21 +145,24 @@ void LNCVBManager::print_cv_list(){
 		if ( (idx >= count_sys_cv  + count_user_cv ) && (idx < count_sys_cv + count_user_cv  + count_user_cv1) )
       val = pgm_read_word_near(&ln_user1[idx - count_sys_cv - count_user_cv].def_value);
     else 
-		if ( (idx >= count_sys_cv  + count_user_cv + count_user_cv1) && (idx < count_sys_cv + count_user_cv  + count_user_cv1 + + count_user_cv2) )
+		if ( (idx >= count_sys_cv  + count_user_cv + count_user_cv1) && (idx < count_sys_cv + count_user_cv  + count_user_cv1 + count_user_cv2) )
       val = pgm_read_word_near(&ln_user2[idx - count_sys_cv - count_user_cv - count_user_cv1].def_value);
     else 
-		if ( (idx >= count_sys_cv  + count_user_cv + count_user_cv1 + count_user_cv2) && (idx < count_sys_cv + count_user_cv  + count_user_cv1 + + count_user_cv2 + count_user_cv3) )
+		if ( (idx >= count_sys_cv  + count_user_cv + count_user_cv1 + count_user_cv2) && (idx < count_sys_cv + count_user_cv  + count_user_cv1 + count_user_cv2 + count_user_cv3) )
       val = pgm_read_word_near(&ln_user3[idx - count_sys_cv - count_user_cv - count_user_cv1 - count_user_cv2].def_value);
     return val;
   }
   
   void LNCVBManager::reset_default(){
-    for(int i = 0; i < count; i++)
-      lncv_val[i] = get_def_val_by_idx(i);
     uint16_t addr = sizeof(KeyType);
-    eeprom_write_block((void*)lncv_val, (void*)(addr), count *sizeof(lncv_val[0]) );                
+    for(int i = 0; i < count; i++) {
+      lncv_val[i] = get_def_val_by_idx(i);
+	  eeprom_write_word(addr + i * sizeof(lncv_val[i]), lncv_val[i]);                
+	}
+//    eeprom_write_block((void*)lncv_val, (void*)(addr), count *sizeof(lncv_val[0]) );                
+	
 #ifdef DEBUG_CVM
-    Serial.println("CVDEF!");
+//    Serial.println("CVDEF!");
 #endif    
   };  
   
@@ -164,21 +172,40 @@ void LNCVBManager::print_cv_list(){
 #ifdef DEBUG_CVM
     Serial.print("mkey:");
     Serial.println(master_key);
+	//delay(1000);
 #endif
     uint16_t addr = 0;
 
-    eeprom_read_block((void*)&key, (const void*)addr, sizeof(KeyType));
+    //eeprom_read_block((void*)&key, (const void*)addr, sizeof(KeyType));
+    //eeprom_read_block(key, addr, sizeof(KeyType));
+	key = eeprom_read_dword(addr);
+    Serial.print("read key:");
+    Serial.println(key);
+	//delay(1000);
+	
     if (key != master_key){
 #ifdef DEBUG_CVM
       Serial.println("INIT!");
 #endif      
       addr = 0;
-      eeprom_write_block((void*)&master_key, (void*)addr, sizeof(master_key));                
-      
+      //eeprom_write_block((void*)&master_key, (void*)addr, sizeof(master_key));                
+      //eeprom_write_block(master_key, addr, sizeof(master_key));    
+	  eeprom_write_dword(addr, master_key);
       reset_default();
     } else {
       addr = sizeof(KeyType);
-      eeprom_read_block((void*)lncv_val, (void*)(addr), count *sizeof(lncv_val[0]) );                      
+//      eeprom_read_block((void*)lncv_val, (void*)(addr), count *sizeof(lncv_val[0]) );     
+	  for (int i = 0; i < count; i++) {					
+		//eeprom_read_block(lncv_val, (addr), count *sizeof(lncv_val[0]) );                      
+		lncv_val[i] = eeprom_read_word(addr + i * sizeof(lncv_val[0]));
+		
+		/*
+		Serial.print("read cv i:");
+		Serial.print(i);
+		Serial.print(" v:");
+		Serial.println(lncv_val[i]);
+*/
+	  };
     };
   };
   
@@ -257,11 +284,13 @@ void LNCVBManager::print_cv_list(){
     
   int32_t  LNCVBManager::set_val_by_idx(uint16_t idx, uint16_t val){
 #ifdef DEBUG_CVM
+
     Serial.print("set_val_by_idx: ");
     Serial.print("idx: ");
     Serial.print(idx);
     Serial.print(" v: ");
     Serial.println(val);
+	
 #endif    
 
     if ((idx >= count)) return -1;
@@ -305,8 +334,22 @@ void LNCVBManager::print_cv_list(){
 	
 		lncv_val[idx] = val;
     	addr = sizeof(KeyType) + idx * sizeof(lncv_val[0]);
-    	eeprom_write_block((void*)&lncv_val[idx], (void*)(addr), sizeof(lncv_val[0]) );
-    	res = lncv_val[idx];
+#ifdef DEBUG_CVM
+		Serial.print(" cv_val: ");
+		Serial.print(lncv_val[idx]);
+#endif
+
+//		eeprom_write_word((uint16_t*)(addr), lncv_val[idx] );
+		eeprom_write_word((addr), lncv_val[idx] );
+		
+		
+		
+    	//eeprom_write_block((void*)&lncv_val[idx], (void*)(addr), sizeof(lncv_val[0]) );
+    	//res = lncv_val[idx];
+		
+//		res = eeprom_read_word((uint16_t*)(addr));
+		res = eeprom_read_word((addr));
+		
 		break;
 	case CV_RO:
 #ifdef DEBUG_CVM
@@ -357,8 +400,10 @@ void LNCVBManager::print_cv_list(){
   
   int32_t  LNCVBManager::get_idx_by_num(uint16_t lncv_num_in){
 #ifdef DEBUG_CVM
+/*
     Serial.print(" num2idx: ");
     Serial.println(lncv_num_in);
+*/	
 #endif
     //check if it above that min CV number
     if (lncv_num[lncv_idx[0]] > lncv_num_in) return -1;
@@ -374,6 +419,7 @@ void LNCVBManager::print_cv_list(){
     
     while (1) {
 #ifdef DEBUG_CVM
+/*
         Serial.print("a: ");
         Serial.print(a);
         Serial.print(" i(a): ");
@@ -394,6 +440,7 @@ void LNCVBManager::print_cv_list(){
         Serial.print(lncv_idx[c]);
         Serial.print(" v(c): ");
         Serial.println(lncv_num[lncv_idx[c]]);
+*/		
 #endif
 
         if (lncv_num[lncv_idx[a]] == lncv_num_in) {
@@ -415,12 +462,14 @@ void LNCVBManager::print_cv_list(){
           else b = c;
         c = (b + a)/ 2;
 #ifdef DEBUG_CVM
+/*
         Serial.print("END a: ");
         Serial.print(a);
         Serial.print(" b: ");
         Serial.print(b);
         Serial.print(" c: ");
         Serial.println(c);
+*/		
 #endif
 
     };
@@ -459,6 +508,12 @@ void LNCVBManager::print_cv_list(){
 					res = ln_version_id;
 					break;
 				default:
+				/*
+					Serial.print("get_val_by_idx idx:");
+					Serial.print(idx);
+					Serial.print(" v:");
+					Serial.println(lncv_val[idx]);
+				*/	
 					res = lncv_val[idx];
 					break;
 			};
