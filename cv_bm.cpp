@@ -61,6 +61,18 @@
      }
 #endif     
   };
+
+void LNCVBManager::print_cv_list_short(){
+  char buf[LNCV_TXT_MAX_LENGTH];
+  for (int i =0; i < get_count(); i++){
+    Serial.print("cv");
+    Serial.print(get_num_by_idx(get_sorted_idx(i)));
+    Serial.print("=");
+    Serial.print(get_val_by_idx(get_sorted_idx(i)));
+    Serial.println();
+    
+  }
+};
   
 void LNCVBManager::print_cv_list(){
   char buf[LNCV_TXT_MAX_LENGTH];
@@ -117,11 +129,14 @@ void LNCVBManager::print_cv_list(){
 		if ( (idx >= count_sys_cv  + count_user_cv ) && (idx < count_sys_cv + count_user_cv  + count_user_cv1) )
       val = pgm_read_word_near(&ln_user1[idx - count_sys_cv - count_user_cv].cv_type);
     else 
-		if ( (idx >= count_sys_cv  + count_user_cv + count_user_cv1) && (idx < count_sys_cv + count_user_cv  + count_user_cv1 + + count_user_cv2) )
+		if ( (idx >= count_sys_cv  + count_user_cv + count_user_cv1) && (idx < count_sys_cv + count_user_cv  + count_user_cv1 + count_user_cv2) )
       val = pgm_read_word_near(&ln_user2[idx - count_sys_cv - count_user_cv - count_user_cv1].cv_type);
     else 
-		if ( (idx >= count_sys_cv  + count_user_cv + count_user_cv1 + count_user_cv2) && (idx < count_sys_cv + count_user_cv  + count_user_cv1 + + count_user_cv2 + count_user_cv3) )
+		if ( (idx >= count_sys_cv  + count_user_cv + count_user_cv1 + count_user_cv2) && (idx < count_sys_cv + count_user_cv  + count_user_cv1 + count_user_cv2 + count_user_cv3) )
       val = pgm_read_word_near(&ln_user3[idx - count_sys_cv - count_user_cv - count_user_cv1 - count_user_cv2].cv_type);
+    else 
+		if ( (idx >= count_sys_cv  + count_user_cv + count_user_cv1 + count_user_cv2 + count_user_cv3) && (idx < count_sys_cv + count_user_cv  + count_user_cv1 + count_user_cv2 + count_user_cv3 + count_user_cv4) )
+      val = pgm_read_word_near(&ln_user4[idx - count_sys_cv - count_user_cv - count_user_cv1 - count_user_cv2 - count_user_cv3].cv_type);
     //return val;
     return (CV_TYPE)val;
   };
@@ -150,6 +165,9 @@ void LNCVBManager::print_cv_list(){
     else 
 		if ( (idx >= count_sys_cv  + count_user_cv + count_user_cv1 + count_user_cv2) && (idx < count_sys_cv + count_user_cv  + count_user_cv1 + count_user_cv2 + count_user_cv3) )
       val = pgm_read_word_near(&ln_user3[idx - count_sys_cv - count_user_cv - count_user_cv1 - count_user_cv2].def_value);
+    else 
+		if ( (idx >= count_sys_cv  + count_user_cv + count_user_cv1 + count_user_cv2 + count_user_cv3) && (idx < count_sys_cv + count_user_cv  + count_user_cv1 + count_user_cv2 + count_user_cv3 + count_user_cv4) )
+      val = pgm_read_word_near(&ln_user4[idx - count_sys_cv - count_user_cv - count_user_cv1 - count_user_cv2 - count_user_cv3].def_value);
     return val;
   }
   
@@ -220,7 +238,8 @@ void LNCVBManager::print_cv_list(){
 		  uint16_t count_user_cv_in, const CVDesc ln_user_in[],
 		  uint16_t count_user_cv_in1, const CVDesc ln_user_in1[],
 		  uint16_t count_user_cv_in2, const CVDesc ln_user_in2[],
-		  uint16_t count_user_cv_in3, const CVDesc ln_user_in3[]
+		  uint16_t count_user_cv_in3, const CVDesc ln_user_in3[],
+		  uint16_t count_user_cv_in4, const CVDesc ln_user_in4[]
 		  ){
 
     ln_art = ln_art_in;
@@ -235,19 +254,38 @@ void LNCVBManager::print_cv_list(){
     ln_user1 = (CVDesc *)ln_user_in1;
     ln_user2 = (CVDesc *)ln_user_in2;
     ln_user3 = (CVDesc *)ln_user_in3;
+    ln_user4 = (CVDesc *)ln_user_in4;
   
     count_sys_cv = count_sys_cv_in;
     count_user_cv  = count_user_cv_in;
     count_user_cv1  = count_user_cv_in1;
     count_user_cv2  = count_user_cv_in2;
     count_user_cv3  = count_user_cv_in3;
+    count_user_cv4  = count_user_cv_in4;
 	
-    count = count_sys_cv + count_user_cv + count_user_cv1 + count_user_cv2 + count_user_cv3;
+    count = count_sys_cv + count_user_cv + count_user_cv1 + count_user_cv2 + count_user_cv3 + count_user_cv4;
 
     lncv_val = new uint16_t[count];
     lncv_num = new uint16_t[count];
     lncv_idx = new uint16_t[count];
+	/*
+	Serial.print("cv init c:");
+	Serial.print(count);
+	Serial.print(" csys:");
+	Serial.print(count_sys_cv);
 
+	Serial.print(" uc:");
+	Serial.print(count_user_cv);
+	Serial.print(" uc1:");
+	Serial.print(count_user_cv1);
+	Serial.print(" uc2:");
+	Serial.print(count_user_cv2);
+	Serial.print(" uc3:");
+	Serial.print(count_user_cv3);
+	Serial.print(" uc4:");
+	Serial.println(count_user_cv4);
+*/
+	
     for(int i = 0; i < count_sys_cv; i++)
         lncv_num[i] = pgm_read_word_near(&ln_sys[i].lncv_num);
 
@@ -263,6 +301,8 @@ void LNCVBManager::print_cv_list(){
     for(int i = 0; i < count_user_cv3; i++) 
         lncv_num[i + count_sys_cv + count_user_cv + count_user_cv1 + count_user_cv2] = pgm_read_word_near(&ln_user3[i].lncv_num);
 
+    for(int i = 0; i < count_user_cv4; i++) 
+        lncv_num[i + count_sys_cv + count_user_cv + count_user_cv1 + count_user_cv2 + count_user_cv3] = pgm_read_word_near(&ln_user4[i].lncv_num);
 //    uint8_t  *lncv_ro;
 
     for(int i = 0; i < count; i++) lncv_idx[i] = i;
@@ -552,11 +592,14 @@ void LNCVBManager::print_cv_list(){
 		if ( (idx >= count_sys_cv  + count_user_cv ) && (idx < count_sys_cv + count_user_cv  + count_user_cv1) )
 		buf = & ln_user1[idx - count_sys_cv - count_user_cv].txt[0] ;
     else 
-		if ( (idx >= count_sys_cv  + count_user_cv + count_user_cv1) && (idx < count_sys_cv + count_user_cv  + count_user_cv1 + + count_user_cv2) )
+		if ( (idx >= count_sys_cv  + count_user_cv + count_user_cv1) && (idx < count_sys_cv + count_user_cv  + count_user_cv1 + count_user_cv2) )
 		buf = & ln_user2[idx - count_sys_cv - count_user_cv - count_user_cv1].txt[0] ;
     else 
-		if ( (idx >= count_sys_cv  + count_user_cv + count_user_cv1 + count_user_cv2) && (idx < count_sys_cv + count_user_cv  + count_user_cv1 + + count_user_cv2 + count_user_cv3) )
+		if ( (idx >= count_sys_cv  + count_user_cv + count_user_cv1 + count_user_cv2) && (idx < count_sys_cv + count_user_cv  + count_user_cv1 + count_user_cv2 + count_user_cv3) )
 		buf = & ln_user3[idx - count_sys_cv - count_user_cv - count_user_cv1 - count_user_cv2].txt[0] ;
+    else 
+		if ( (idx >= count_sys_cv  + count_user_cv + count_user_cv1 + count_user_cv2 + count_user_cv3) && (idx < count_sys_cv + count_user_cv  + count_user_cv1 + count_user_cv2 + count_user_cv3 + count_user_cv4) )
+		buf = & ln_user4[idx - count_sys_cv - count_user_cv - count_user_cv1 - count_user_cv2 - count_user_cv3].txt[0] ;
     
     
     for (int i = 0; i < LNCV_TXT_MAX_LENGTH; i++)

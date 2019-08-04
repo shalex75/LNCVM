@@ -45,6 +45,7 @@ private:
   CVDesc * ln_user1;
   CVDesc * ln_user2;
   CVDesc * ln_user3;
+  CVDesc * ln_user4;
   
   CVDesc * ln_cvs;
   
@@ -52,6 +53,7 @@ private:
   uint16_t count_user_cv1;
   uint16_t count_user_cv2;
   uint16_t count_user_cv3;
+  uint16_t count_user_cv4;
   uint16_t count_sys_cv;
   
   uint16_t count;
@@ -79,7 +81,8 @@ public:
 		  uint16_t count_user_cv_in, const CVDesc ln_user_in[],
 		  uint16_t count_user_cv_in1, const CVDesc ln_user_in1[],
 		  uint16_t count_user_cv_in2, const CVDesc ln_user_in2[],
-		  uint16_t count_user_cv_in3, const CVDesc ln_user_in3[]
+		  uint16_t count_user_cv_in3, const CVDesc ln_user_in3[],
+		  uint16_t count_user_cv_in4, const CVDesc ln_user_in4[]
 		  );
   
   uint16_t get_count() { return count; };
@@ -109,6 +112,7 @@ public:
   uint16_t  get_sorted_idx(uint16_t pos);
   
   void 		print_cv_list();
+  void 		print_cv_list_short();
 
   void      print_lncv_num();
 };
